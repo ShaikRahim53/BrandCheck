@@ -1,28 +1,50 @@
 package com.rahim.brandcheck
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.rahim.brandcheck.ui.theme.BrandCheckTheme
-import android.Manifest
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.rahim.brandcheck.camera.CameraPreview
-
+import com.rahim.brandcheck.ui.theme.BrandCheckTheme
 
 class MainActivity : ComponentActivity() {
+
+    private val CAMERA_PERMISSION_REQUEST_CODE = 100
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        requestStoragePermission(this)
         enableEdgeToEdge()
+
+        if (hasCameraPermission()) {
+            startAppContent()
+        } else {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.CAMERA),
+                CAMERA_PERMISSION_REQUEST_CODE
+            )
+        }
+    }
+
+    private fun hasCameraPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun startAppContent() {
         setContent {
             BrandCheckTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -31,33 +53,19 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    BrandCheckTheme {
-        Greeting("Android")
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
+            if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                startAppContent()
+            } else {
+                Toast.makeText(this, "Camera permission is required to run the app", Toast.LENGTH_LONG).show()
+            }
+        }
     }
-}
-private fun requestStoragePermission(activity:ComponentActivity) {
-    val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        Manifest.permission.READ_MEDIA_IMAGES
-    } else {
-        Manifest.permission.READ_EXTERNAL_STORAGE
-    }
-
-    ActivityCompat.requestPermissions(
-        activity,
-        arrayOf(permission),
-        101  // Request code
-    )
 }
