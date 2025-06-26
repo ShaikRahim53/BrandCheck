@@ -1,0 +1,17 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+plugins {
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.kotlin.android) apply false
+}
+// Project-level build.gradle.kts (located at the root of your project)
+buildscript {
+    repositories {
+        google()  // This line adds Google Maven repository
+        mavenCentral()
+    }
+    dependencies {
+        // Your dependencies here
+    }
+}
+
+
